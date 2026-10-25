@@ -32,7 +32,7 @@ class RoadRiskRequest(BaseModel):
     humidity_percent: float = Field(ge=0, le=100)
     precipitation_mm: float = Field(ge=0)
     wind_speed_kmh: float = Field(ge=0)
-    road_closure: Literal["OPEN", "CLOSED", "PARTIAL"]
+    road_closure: bool
     highway: str
 
 
@@ -71,7 +71,7 @@ def model_info():
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
     return {
-        "model_type": type(model_bundle["pipeline"].named_steps["classifier"]).__name__,
+        "model_type": type(model_bundle["pipeline"].steps[-1][1]).__name__,
         "target": model_bundle["target"],
         "classes": list(model_bundle["classes"]),
         "features": model_bundle["feature_columns"],
