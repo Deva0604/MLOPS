@@ -6,6 +6,7 @@ __pycache__/
 .DS_Store
 .env
 mlruns/
+.mlflow.db
 models/*.joblib
 reports/*.png
 reports/*.json
