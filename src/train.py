@@ -114,8 +114,7 @@ def main():
     ])
 
     # Track experiments locally with MLflow.
-    mlflow.set_tracking_uri((ROOT / "mlruns").as_uri())
-    tracking_db = ROOT / "mlflow.db"
+    tracking_db = ROOT / ".mlflow.db"
     mlflow.set_tracking_uri(f"sqlite:///{tracking_db}")
     mlflow.set_experiment("SafeRoute-Road-Risk")
 
