@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeRoute | MLOps Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #111b2e;
+      --surface2: #17243a;
+      --border: #293951;
+      --text: #e8eef8;
+      --muted: #9aabc3;
+      --green: #36d399;
+      --blue: #60a5fa;
+      --orange: #fbbf24;
+      --red: #fb7185;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 22px 5%;
+      border-bottom: 1px solid var(--border);
+      background: #0e1728;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      background: #163b39;
+      color: var(--green);
+      font-size: 24px;
+    }
+
+    h1 { font-size: 21px; margin: 0; }
+    .subtitle { color: var(--muted); font-size: 13px; }
+    main { max-width: 1400px; margin: auto; padding: 28px 5%; }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    h2 { font-size: 19px; margin: 0 0 5px; }
+    h3 { font-size: 15px; margin: 0 0 16px; }
+    p { margin-top: 5px; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+    .dot.ok { background: var(--green); }
+    .dot.bad { background: var(--red); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 20px;
+      min-width: 0;
+    }
+
+    .metric-label { color: var(--muted); font-size: 12px; }
+    .metric-value { font-size: 22px; font-weight: 700; margin: 8px 0 4px; }
+    .metric-note { font-size: 12px; color: var(--muted); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid #2563eb;
+      outline-offset: 1px;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 15px;
+      cursor: pointer;
+      font-weight: 650;
+      font-size: 13px;
+    }
+
+    button:disabled { opacity: .55; cursor: wait; }
+    .primary { background: var(--green); color: #06241d; }
+    .secondary { background: #203451; color: var(--text); border: 1px solid var(--border); }
+    .cloud { background: #1e40af; color: white; }
+    .wide { width: 100%; }
+
+    .result-box {
+      padding: 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      margin-top: 15px;
+      min-height: 100px;
+    }
+
+    .result-title { font-size: 12px; color: var(--muted); }
+    .risk-name { font-size: 25px; font-weight: 800; margin: 4px 0; }
+    .risk-name.LOW { color: var(--green); }
+    .risk-name.MEDIUM { color: var(--orange); }
+    .risk-name.HIGH, .risk-name.CLOSED { color: var(--red); }
+
+    .prob-row {
+      display: grid;
+      grid-template-columns: 65px minmax(40px, 1fr) 52px;
+      gap: 9px;
+      align-items: center;
+      font-size: 12px;
+      margin: 12px 0;
+    }
+
+    .track { height: 9px; background: #27364c; border-radius: 9px; overflow: hidden; }
+    .fill { height: 100%; border-radius: 9px; background: var(--blue); width: 0; }
+    .fill.LOW { background: var(--green); }
+    .fill.MEDIUM { background: var(--orange); }
+    .fill.HIGH, .fill.CLOSED { background: var(--red); }
+
+    .status-list { display: grid; gap: 12px; }
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-item:last-child { border-bottom: 0; }
+    .status-value { font-size: 12px; color: var(--muted); text-align: right; overflow-wrap: anywhere; }
+
+    .notice {
+      padding: 13px 15px;
+      border: 1px solid #715522;
+      background: #2b2415;
+      color: #f7d99a;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-top: 18px;
+    }
+
+    .error { color: #fda4af; font-size: 13px; overflow-wrap: anywhere; }
+    .success { color: var(--green); font-size: 13px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; color: var(--muted); }
+
+    footer {
+      padding: 25px 5%;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 25px;
+    }
+
+    @media (max-width: 850px) {
+      .grid { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .form-grid { grid-template-columns: 1fr; }
+      main { padding: 22px 4%; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">⌁</div>
+    <div>
+      <h1>SafeRoute <span style="color:var(--green)">MLOps</span></h1>
+      <div class="subtitle">Road-risk prediction and deployment dashboard</div>
+    </div>
+  </div>
+  <div class="badge"><span class="dot" id="headerDot"></span><span id="headerStatus">Checking local API…</span></div>
+</header>
+
+<main>
+  <div class="topline">
+    <div>
+      <h2>Machine Learning Operations</h2>
+      <div class="muted">Monitor the model and compare local inference with AWS cloud inference.</div>
+    </div>
+    <button class="secondary" id="refreshButton">Refresh status</button>
+  </div>
+
+  <section class="grid">
+    <div class="card">
+      <div class="metric-label">LOCAL API</div>
+      <div class="metric-value" id="apiMetric">Checking…</div>
+      <div class="metric-note" id="apiNote">FastAPI service</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">MODEL TYPE</div>
+      <div class="metric-value" id="modelMetric">Loading…</div>
+      <div class="metric-note" id="modelNote">Trained inference pipeline</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">PREDICTION CLASSES</div>
+      <div class="metric-value">4</div>
+      <div class="metric-note">LOW · MEDIUM · HIGH · CLOSED</div>
+    </div>
+  </section>
+
+  <section class="layout">
+    <div class="card">
+      <h3>Road and Weather Inputs</h3>
+      <p class="muted">Use the same inputs for local and cloud predictions.</p>
+
+      <form id="predictionForm">
+        <div class="form-grid">
+          <div>
+            <label for="road_length_m">Road length (m)</label>
+            <input id="road_length_m" type="number" min="0" step="any" value="500" required>
+          </div>
+          <div>
+            <label for="current_speed_kmh">Current speed (km/h)</label>
+            <input id="current_speed_kmh" type="number" min="0" step="any" value="15" required>
+          </div>
+          <div>
+            <label for="free_flow_speed_kmh">Free-flow speed (km/h)</label>
+            <input id="free_flow_speed_kmh" type="number" min="0.1" step="any" value="50" required>
+          </div>
+          <div>
+            <label for="congestion_ratio">Congestion ratio</label>
+            <input id="congestion_ratio" type="number" min="0" step="any" value="0.7" required>
+          </div>
+          <div>
+            <label for="temperature_c">Temperature (°C)</label>
+            <input id="temperature_c" type="number" step="any" value="32" required>
+          </div>
+          <div>
+            <label for="humidity_percent">Humidity (%)</label>
+            <input id="humidity_percent" type="number" min="0" max="100" step="any" value="75" required>
+          </div>
+          <div>
+            <label for="precipitation_mm">Precipitation (mm)</label>
+            <input id="precipitation_mm" type="number" min="0" step="any" value="2" required>
+          </div>
+          <div>
+            <label for="wind_speed_kmh">Wind speed (km/h)</label>
+            <input id="wind_speed_kmh" type="number" min="0" step="any" value="12" required>
+          </div>
+          <div>
+            <label for="road_closure">Road closure</label>
+            <select id="road_closure">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          <div>
+            <label for="highway">Highway</label>
+            <select id="highway">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="button" id="localButton">Predict locally</button>
+          <button class="cloud" type="button" id="awsButton">Predict with AWS</button>
+          <button class="secondary" type="button" id="compareButton">Compare both</button>
+        </div>
+      </form>
+
+      <div class="notice">
+        Predictions are machine-learning estimates, not confirmed road conditions.
+        Check official traffic and road-closure information before making travel decisions.
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Local Model Prediction</h3>
+        <div id="localResult" class="result-box" aria-live="polite">
+          <span class="muted">Run a local prediction to see the result.</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>AWS Cloud Prediction</h3>
+        <div id="awsResult" class="result-box" aria-live="polite">
+          <span class="muted">Run an AWS prediction to see the result.</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Prediction Comparison</h3>
+        <div id="comparisonResult" class="result-box" aria-live="polite">
+          <span class="muted">Run both predictions to compare their outputs.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:20px">
+    <h3>Model Information</h3>
+    <div class="status-list">
+      <div class="status-item"><span>Prediction target</span><span class="status-value" id="targetValue">Loading…</span></div>
+      <div class="status-item"><span>Input features</span><span class="status-value" id="featureValue">Loading…</span></div>
+      <div class="status-item"><span>Model classes</span><span class="status-value" id="classesValue">Loading…</span></div>
+      <div class="status-item"><span>AWS endpoint</span><span class="status-value">API Gateway · eu-north-1</span></div>
+    </div>
+    <div id="systemError" class="error" style="margin-top:12px" role="status"></div>
+  </section>
+</main>
+
+<footer>
+  SafeRoute MLOps · Local FastAPI inference + AWS cloud inference · For demonstration and evaluation purposes
+</footer>
+
+<script>
+  // Local FastAPI runs separately from this static frontend.
+  const LOCAL_API = "http://127.0.0.1:8001";
+  const AWS_PREDICTION_API =
+    "https://ndf8t671si.execute-api.eu-north-1.amazonaws.com/predict";
+
+  const CLASS_NAMES = ["LOW", "MEDIUM", "HIGH", "CLOSED"];
+
+  function setText(id, value) {
+    document.getElementById(id).textContent = value;
+  }
+
+  function showMessage(id, message, isError = false) {
+    const el = document.getElementById(id);
+    el.replaceChildren();
+    const span = document.createElement("span");
+    span.className = isError ? "error" : "muted";
+    span.textContent = message;
+    el.appendChild(span);
+  }
+
+  async function getJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const text = await response.text();
+    let data;
+
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(`Server returned non-JSON content (HTTP ${response.status}).`);
+    }
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.message || `Request failed (HTTP ${response.status}).`);
+    }
+    return data;
+  }
+
+  async function refreshStatus() {
+    setText("headerStatus", "Checking local API…");
+    document.getElementById("headerDot").className = "dot";
+    setText("apiMetric", "Checking…");
+    setText("modelMetric", "Loading…");
+    setText("systemError", "");
+
+    try {
+      const health = await getJson(`${LOCAL_API}/health`);
+      setText("apiMetric", health.status === "healthy" ? "Online" : "Unavailable");
+      setText("apiNote", health.model_loaded ? "API and model are ready" : "Model is not loaded");
+      setText("headerStatus", health.model_loaded ? "Local API online" : "API online · model unavailable");
+      document.getElementById("headerDot").className =
+        health.model_loaded ? "dot ok" : "dot bad";
+
+      const info = await getJson(`${LOCAL_API}/model-info`);
+      setText("modelMetric", info.model_type || "Available");
+      setText("modelNote", "Target: " + (info.target || "Not reported"));
+      setText("targetValue", info.target || "Not reported");
+      setText("featureValue", Array.isArray(info.features) ? info.features.join(", ") : "Not reported");
+      setText("classesValue", Array.isArray(info.classes) ? info.classes.join(", ") : "Not reported");
+    } catch (error) {
+      setText("apiMetric", "Offline");
+      setText("apiNote", "Could not reach local FastAPI");
+      setText("modelMetric", "Unavailable");
+      setText("headerStatus", "Local API unavailable");
+      document.getElementById("headerDot").className = "dot bad";
+      setText("systemError",
+        `Local API status failed: ${error.message} Start FastAPI on port 8001 and ensure CORS permits this frontend origin.`);
+    }
+  }
+
+  function readInputs() {
+    const form = document.getElementById("predictionForm");
+    if (!form.reportValidity()) {
+      throw new Error("Please complete all input fields with valid values.");
+    }
+
+    const number = id => Number(document.getElementById(id).value);
+    const closure = document.getElementById("road_closure").value;
+    const highway = document.getElementById("highway").value;
+
+    return {
+      road_length_m: number("road_length_m"),
+      current_speed_kmh: number("current_speed_kmh"),
+      free_flow_speed_kmh: number("free_flow_speed_kmh"),
+      congestion_ratio: number("congestion_ratio"),
+      temperature_c: number("temperature_c"),
+      humidity_percent: number("humidity_percent"),
+      precipitation_mm: number("precipitation_mm"),
+      wind_speed_kmh: number("wind_speed_kmh"),
+      road_closure: closure === "yes",
+      highway: highway
+    };
+  }
+
+  function toAwsPayload(inputs) {
+    return {
+      ...inputs,
+      road_closure: inputs.road_closure ? "yes" : "no"
+    };
+  }
+
+  function normalizePrediction(data, source) {
+    const prediction =
+      data.predicted_risk_category ||
+      data.prediction ||
+      data.predicted_class ||
+      data.risk_category ||
+      "Unknown";
+
+    const probabilities =
+      data.class_probabilities ||
+      data.probabilities ||
+      data.probability ||
+      {};
+
+    return { source, prediction: String(prediction).toUpperCase(), probabilities, raw: data };
+  }
+
+  function renderPrediction(containerId, result) {
+    const box = document.getElementById(containerId);
+    box.replaceChildren();
+
+    const title = document.createElement("div");
+    title.className = "result-title";
+    title.textContent = `${result.source} result`;
+    box.appendChild(title);
+
+    const name = document.createElement("div");
+    name.className = "risk-name " + result.prediction;
+    name.textContent = result.prediction;
+    box.appendChild(name);
+
+    const probabilities = result.probabilities;
+    const entries = CLASS_NAMES
+      .filter(label => probabilities && probabilities[label] !== undefined)
+      .map(label => [label, Number(probabilities[label])]);
+
+    if (entries.length) {
+      const max = Math.max(...entries.map(([, value]) => value));
+      const scale = max <= 1 ? 100 : 1;
+
+      for (const [label, value] of entries) {
+        const percent = Math.max(0, Math.min(100, value * scale));
+        const row = document.createElement("div");
+        row.className = "prob-row";
+
+        const labelEl = document.createElement("span");
+        labelEl.textContent = label;
+
+        const track = document.createElement("div");
+        track.className = "track";
+        const fill = document.createElement("div");
+        fill.className = "fill " + label;
+        fill.style.width = `${percent}%`;
+        track.appendChild(fill);
+
+        const valueEl = document.createElement("span");
+        valueEl.style.textAlign = "right";
+        valueEl.textContent = `${percent.toFixed(2)}%`;
+
+        row.append(labelEl, track, valueEl);
+        box.appendChild(row);
+      }
+    } else {
+      const note = document.createElement("p");
+      note.className = "muted";
+      note.textContent = "The API did not return class probabilities.";
+      box.appendChild(note);
+    }
+
+    const note = document.createElement("p");
+    note.className = "muted";
+    note.textContent = "Probability values are model estimates, not guarantees.";
+    box.appendChild(note);
+  }
+
+  async function predictLocal(inputs) {
+    showMessage("localResult", "Running local prediction…");
+    const payload = { ...inputs };
+    const data = await getJson(`${LOCAL_API}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = normalizePrediction(data, "Local FastAPI");
+    renderPrediction("localResult", result);
+    return result;
+  }
+
+  async function predictAws(inputs) {
+    showMessage("awsResult", "Calling AWS API Gateway…");
+    const data = await getJson(AWS_PREDICTION_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toAwsPayload(inputs))
+    });
+    const result = normalizePrediction(data, "AWS cloud");
+    renderPrediction("awsResult", result);
+    return result;
+  }
+
+  function renderComparison(local, aws) {
+    const box = document.getElementById("comparisonResult");
+    box.replaceChildren();
+
+    const same = local.prediction === aws.prediction;
+    const heading = document.createElement("div");
+    heading.className = same ? "success" : "muted";
+    heading.style.fontWeight = "700";
+    heading.textContent = same
+      ? `Both services predicted ${local.prediction}.`
+      : `Predictions differ: local ${local.prediction}, AWS ${aws.prediction}.`;
+    box.appendChild(heading);
+
+    const details = document.createElement("p");
+    details.className = "muted";
+    details.textContent = "Both requests used the same displayed road and weather inputs. Differences may arise from model or preprocessing versions.";
+    box.appendChild(details);
+  }
+
+  async function runOne(which) {
+    const buttonIds = {
+      local: ["localButton"],
+      aws: ["awsButton"],
+      compare: ["compareButton", "localButton", "awsButton"]
+    };
+    const buttons = buttonIds[which].map(id => document.getElementById(id));
+    buttons.forEach(button => button.disabled = true);
+
+    try {
+      const inputs = readInputs();
+      setText("systemError", "");
+
+      if (which === "local") {
+        await predictLocal(inputs);
+      } else if (which === "aws") {
+        await predictAws(inputs);
+      } else {
+        showMessage("comparisonResult", "Running both predictions…");
+        const [localOutcome, awsOutcome] = await Promise.allSettled([
+          predictLocal(inputs),
+          predictAws(inputs)
+        ]);
+
+        if (localOutcome.status === "fulfilled" && awsOutcome.status === "fulfilled") {
+          renderComparison(localOutcome.value, awsOutcome.value);
+        } else {
+          const errors = [];
+          if (localOutcome.status === "rejected") {
+            showMessage("localResult", localOutcome.reason.message, true);
+            errors.push("Local: " + localOutcome.reason.message);
+          }
+          if (awsOutcome.status === "rejected") {
+            showMessage("awsResult", awsOutcome.reason.message, true);
+            errors.push("AWS: " + awsOutcome.reason.message);
+          }
+          showMessage("comparisonResult", errors.join(" | "), true);
+        }
+      }
+    } catch (error) {
+      const target = which === "local" ? "localResult" :
+        which === "aws" ? "awsResult" : "comparisonResult";
+      showMessage(target, error.message, true);
+    } finally {
+      buttons.forEach(button => button.disabled = false);
+    }
+  }
+
+  document.getElementById("refreshButton").addEventListener("click", refreshStatus);
+  document.getElementById("localButton").addEventListener("click", () => runOne("local"));
+  document.getElementById("awsButton").addEventListener("click", () => runOne("aws"));
+  document.getElementById("compareButton").addEventListener("click", () => runOne("compare"));
+
+  refreshStatus();
+</script>
+</body>
+</html>
