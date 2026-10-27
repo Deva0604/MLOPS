@@ -10,3 +10,13 @@ mlruns/
 models/*.joblib
 reports/*.png
 reports/*.json
+
+# SafeRoute AWS Lambda generated files
+aws-lambda/aws/
+aws-lambda/awscliv2.zip
+aws-lambda/package/
+aws-lambda/__pycache__/
+aws-lambda/model/
+aws-lambda/lambda-deployment.zip
+aws-lambda/lambda_function.py.backup
+aws-lambda/lambda-response.json
