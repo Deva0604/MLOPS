@@ -20,3 +20,10 @@ aws-lambda/model/
 aws-lambda/lambda-deployment.zip
 aws-lambda/lambda_function.py.backup
 aws-lambda/lambda-response.json
+
+# Local dashboard backups
+frontend/*.backup*
+frontend/*.safebak
+
+# Local model artifacts (already ignored by models/*.joblib)
+models/
