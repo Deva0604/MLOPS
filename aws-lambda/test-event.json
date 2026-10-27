@@ -1,0 +1,12 @@
+{
+  "road_length_m": 500,
+  "current_speed_kmh": 15,
+  "free_flow_speed_kmh": 50,
+  "congestion_ratio": 0.7,
+  "temperature_c": 32,
+  "humidity_percent": 75,
+  "precipitation_mm": 2,
+  "wind_speed_kmh": 12,
+  "road_closure": "no",
+  "highway": "no"
+}
